@@ -1,0 +1,44 @@
+                        +-------+
+                        | Start |
+                        +-------+
+                            |
+                            v
+
+           +--------------------------------------+
+           |   PRIORITY QUEUE TASK SCHEDULER MENU |
+           +--------------------------------------+
+           | 1. Insert New Task                   |
+           | 2. Display All Tasks                 |
+           | 3. Display Min-Heap                  |
+           | 4. Decrease Task Priority            |
+           | 5. Priority Scheduling               |
+           | 6. FCFS Scheduling                   |
+           | 7. SJF Scheduling                    |
+           | 8. Run All Scheduling Policies       |
+           | 9. Policy Advisor                    |
+           | 10. Exit                             |
+           +--------------------------------------+
+                            |
+                            v
+
+                  +------------------+
+                  | Choose Operation |
+                  +------------------+
+                            |
+                            v
+
+             +-----------------------------+
+             | Process Selected Operation  |
+             +-----------------------------+
+                            |
+                            v
+
+                  +------------------+
+                  | Display Result   |
+                  +------------------+
+                            |
+                            v
+
+                         +------+
+                         | Exit |
+                         +------+
