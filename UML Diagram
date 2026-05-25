@@ -1,0 +1,59 @@
++----------------------+
+|        Task          |
++----------------------+
+| - taskName : string  |
+| - priority : int     |
+| - arrivalTime : int  |
+| - burstTime : int    |
+| - deadline : int     |
+| - waitingTime : int  |
+| - turnaroundTime:int |
+| - completionTime:int |
++----------------------+
+| + Task()             |
+| + Task(name,p,       |
+|   arrival,burst,d)   |
++----------------------+
+
+
++----------------------------+
+|          MinHeap           |
++----------------------------+
+| - heap : vector<Task>      |
++----------------------------+
+| - parent(index) : int      |
+| - leftChild(index) : int   |
+| - rightChild(index) : int  |
+| - heapifyUp(index) : void  |
+| - heapifyDown(index): void |
++----------------------------+
+| + insertTask(task) : void  |
+| + extractMin() : Task      |
+| + decreaseKey(name,        |
+|   newPriority) : void      |
+| + isEmpty() : bool         |
+| + displayHeap() : void     |
++----------------------------+
+
+
++-----------------------------+
+|      Scheduler Functions    |
++-----------------------------+
+| + displayAllTasks(tasks)    |
+| + printGanttChart(tasks)    |
+| + calculateReport(tasks,    |
+|   policyName)               |
+| + getAverageWaitingTime()   |
+| + priorityScheduling()      |
+| + fcfsScheduling()          |
+| + sjfScheduling()           |
+| + policyAdvisor()           |
++-----------------------------+
+
+
+Relationship:
+
+MinHeap  -------- uses -------->  Task
+Scheduler Functions --- uses -->  Task
+main() --- uses ---> MinHeap
+main() --- uses ---> Scheduler Functions
