@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <iomanip>
+#include <climits>
 using namespace std;
 
 class Task {
@@ -57,7 +58,6 @@ private:
     void heapifyUp(int index) {
         while (index > 0 &&
                heap[index].priority < heap[parent(index)].priority) {
-
             swap(heap[index], heap[parent(index)]);
             index = parent(index);
         }
@@ -68,17 +68,13 @@ private:
         int left = leftChild(index);
         int right = rightChild(index);
 
-        if (left < heap.size() &&
-            heap[left].priority < heap[smallest].priority) {
-
+        if (left < (int)heap.size() &&
+            heap[left].priority < heap[smallest].priority)
             smallest = left;
-        }
 
-        if (right < heap.size() &&
-            heap[right].priority < heap[smallest].priority) {
-
+        if (right < (int)heap.size() &&
+            heap[right].priority < heap[smallest].priority)
             smallest = right;
-        }
 
         if (smallest != index) {
             swap(heap[index], heap[smallest]);
@@ -93,27 +89,24 @@ public:
     }
 
     Task extractMin() {
-        if (heap.empty()) {
-            cout << "\nHeap is Empty!\n";
+        if (heap.empty())
             return Task();
-        }
 
         Task minTask = heap[0];
 
         heap[0] = heap.back();
         heap.pop_back();
 
-        if (!heap.empty()) {
+        if (!heap.empty())
             heapifyDown(0);
-        }
 
         return minTask;
     }
 
-    void decreaseKey(string name, int newPriority) {
+    bool decreaseKey(string name, int newPriority) {
         int index = -1;
 
-        for (int i = 0; i < heap.size(); i++) {
+        for (int i = 0; i < (int)heap.size(); i++) {
             if (heap[i].taskName == name) {
                 index = i;
                 break;
@@ -122,18 +115,19 @@ public:
 
         if (index == -1) {
             cout << "\nTask Not Found!\n";
-            return;
+            return false;
         }
 
         if (newPriority > heap[index].priority) {
             cout << "\nNew priority must be smaller than current priority!\n";
-            return;
+            return false;
         }
 
         heap[index].priority = newPriority;
         heapifyUp(index);
 
         cout << "\nPriority Updated Successfully!\n";
+        return true;
     }
 
     bool isEmpty() {
@@ -187,27 +181,108 @@ void displayAllTasks(vector<Task> tasks) {
     }
 }
 
+vector<Task> priorityScheduling(vector<Task> tasks) {
+    vector<Task> scheduledTasks;
+    vector<bool> completed(tasks.size(), false);
+
+    int currentTime = 0;
+    int completedCount = 0;
+
+    while (completedCount < (int)tasks.size()) {
+        int selected = -1;
+        int bestPriority = INT_MAX;
+
+        for (int i = 0; i < (int)tasks.size(); i++) {
+            if (!completed[i] &&
+                tasks[i].arrivalTime <= currentTime &&
+                tasks[i].priority < bestPriority) {
+
+                bestPriority = tasks[i].priority;
+                selected = i;
+            }
+        }
+
+        if (selected == -1) {
+            currentTime++;
+            continue;
+        }
+
+        scheduledTasks.push_back(tasks[selected]);
+        currentTime += tasks[selected].burstTime;
+        completed[selected] = true;
+        completedCount++;
+    }
+
+    return scheduledTasks;
+}
+
+vector<Task> fcfsScheduling(vector<Task> tasks) {
+    stable_sort(tasks.begin(), tasks.end(),
+        [](Task a, Task b) {
+            return a.arrivalTime < b.arrivalTime;
+        });
+
+    return tasks;
+}
+
+vector<Task> sjfScheduling(vector<Task> tasks) {
+    vector<Task> scheduledTasks;
+    vector<bool> completed(tasks.size(), false);
+
+    int currentTime = 0;
+    int completedCount = 0;
+
+    while (completedCount < (int)tasks.size()) {
+        int selected = -1;
+        int shortestBurst = INT_MAX;
+
+        for (int i = 0; i < (int)tasks.size(); i++) {
+            if (!completed[i] &&
+                tasks[i].arrivalTime <= currentTime &&
+                tasks[i].burstTime < shortestBurst) {
+
+                shortestBurst = tasks[i].burstTime;
+                selected = i;
+            }
+        }
+
+        if (selected == -1) {
+            currentTime++;
+            continue;
+        }
+
+        scheduledTasks.push_back(tasks[selected]);
+        currentTime += tasks[selected].burstTime;
+        completed[selected] = true;
+        completedCount++;
+    }
+
+    return scheduledTasks;
+}
+
 void printGanttChart(vector<Task> tasks) {
     cout << "\nASCII Gantt Chart:\n\n";
 
-    for (Task task : tasks) {
+    for (Task task : tasks)
         cout << "| " << task.taskName << " ";
-    }
 
     cout << "|\n";
 
-    if (!tasks.empty()) {
+    if (!tasks.empty())
         cout << tasks[0].arrivalTime;
-    }
 
-    for (Task task : tasks) {
+    for (Task task : tasks)
         cout << setw(6) << task.completionTime;
-    }
 
     cout << endl;
 }
 
 void calculateReport(vector<Task> scheduledTasks, string policyName) {
+    if (scheduledTasks.empty()) {
+        cout << "\nNo Tasks Available!\n";
+        return;
+    }
+
     int currentTime = 0;
     float totalWaitingTime = 0;
     float totalTurnaroundTime = 0;
@@ -218,10 +293,9 @@ void calculateReport(vector<Task> scheduledTasks, string policyName) {
 
     cout << "\nExecution Order:\n";
 
-    for (int i = 0; i < scheduledTasks.size(); i++) {
-        if (currentTime < scheduledTasks[i].arrivalTime) {
+    for (int i = 0; i < (int)scheduledTasks.size(); i++) {
+        if (currentTime < scheduledTasks[i].arrivalTime)
             currentTime = scheduledTasks[i].arrivalTime;
-        }
 
         scheduledTasks[i].waitingTime =
             currentTime - scheduledTasks[i].arrivalTime;
@@ -239,9 +313,8 @@ void calculateReport(vector<Task> scheduledTasks, string policyName) {
 
         cout << scheduledTasks[i].taskName;
 
-        if (i != scheduledTasks.size() - 1) {
+        if (i != (int)scheduledTasks.size() - 1)
             cout << " -> ";
-        }
     }
 
     cout << endl;
@@ -266,72 +339,34 @@ void calculateReport(vector<Task> scheduledTasks, string policyName) {
              << setw(15) << task.completionTime << endl;
     }
 
-    float averageWaitingTime =
-        totalWaitingTime / scheduledTasks.size();
-
-    float averageTurnaroundTime =
-        totalTurnaroundTime / scheduledTasks.size();
-
     cout << fixed << setprecision(2);
 
     cout << "\nAverage Waiting Time    : "
-         << averageWaitingTime;
+         << totalWaitingTime / scheduledTasks.size();
 
     cout << "\nAverage Turnaround Time : "
-         << averageTurnaroundTime << endl;
+         << totalTurnaroundTime / scheduledTasks.size()
+         << endl;
 }
 
-float getAverageWaitingTime(vector<Task> scheduledTasks) {
+float getAverageWaitingTime(vector<Task> tasks) {
+    if (tasks.empty())
+        return 0;
+
     int currentTime = 0;
     float totalWaitingTime = 0;
 
-    for (int i = 0; i < scheduledTasks.size(); i++) {
-        if (currentTime < scheduledTasks[i].arrivalTime) {
-            currentTime = scheduledTasks[i].arrivalTime;
-        }
-
-        scheduledTasks[i].waitingTime =
-            currentTime - scheduledTasks[i].arrivalTime;
-
-        currentTime += scheduledTasks[i].burstTime;
-
-        totalWaitingTime += scheduledTasks[i].waitingTime;
-    }
-
-    return totalWaitingTime / scheduledTasks.size();
-}
-
-vector<Task> priorityScheduling(vector<Task> tasks) {
-    MinHeap heap;
-    vector<Task> scheduledTasks;
-
     for (Task task : tasks) {
-        heap.insertTask(task);
+        if (currentTime < task.arrivalTime)
+            currentTime = task.arrivalTime;
+
+        totalWaitingTime +=
+            currentTime - task.arrivalTime;
+
+        currentTime += task.burstTime;
     }
 
-    while (!heap.isEmpty()) {
-        scheduledTasks.push_back(heap.extractMin());
-    }
-
-    return scheduledTasks;
-}
-
-vector<Task> fcfsScheduling(vector<Task> tasks) {
-    sort(tasks.begin(), tasks.end(),
-         [](Task a, Task b) {
-             return a.arrivalTime < b.arrivalTime;
-         });
-
-    return tasks;
-}
-
-vector<Task> sjfScheduling(vector<Task> tasks) {
-    sort(tasks.begin(), tasks.end(),
-         [](Task a, Task b) {
-             return a.burstTime < b.burstTime;
-         });
-
-    return tasks;
+    return totalWaitingTime / tasks.size();
 }
 
 void policyAdvisor(vector<Task> tasks) {
@@ -339,9 +374,14 @@ void policyAdvisor(vector<Task> tasks) {
     vector<Task> fcfsTasks = fcfsScheduling(tasks);
     vector<Task> sjfTasks = sjfScheduling(tasks);
 
-    float priorityAverage = getAverageWaitingTime(priorityTasks);
-    float fcfsAverage = getAverageWaitingTime(fcfsTasks);
-    float sjfAverage = getAverageWaitingTime(sjfTasks);
+    float priorityAverage =
+        getAverageWaitingTime(priorityTasks);
+
+    float fcfsAverage =
+        getAverageWaitingTime(fcfsTasks);
+
+    float sjfAverage =
+        getAverageWaitingTime(sjfTasks);
 
     cout << "\n======================================";
     cout << "\n POLICY ADVISOR REPORT";
@@ -363,18 +403,15 @@ void policyAdvisor(vector<Task> tasks) {
     if (priorityAverage <= fcfsAverage &&
         priorityAverage <= sjfAverage) {
 
-        cout << "Priority Scheduling minimized the average waiting time.";
-        cout << "\nThis happened because high priority tasks were executed earlier.\n";
+        cout << "Priority Scheduling minimized the average waiting time.\n";
     }
     else if (fcfsAverage <= priorityAverage &&
              fcfsAverage <= sjfAverage) {
 
-        cout << "FCFS minimized the average waiting time.";
-        cout << "\nThis happened because tasks were executed in arrival order.\n";
+        cout << "FCFS minimized the average waiting time.\n";
     }
     else {
-        cout << "SJF minimized the average waiting time.";
-        cout << "\nThis happened because shorter burst-time tasks were executed earlier.\n";
+        cout << "SJF minimized the average waiting time.\n";
     }
 }
 
@@ -400,132 +437,114 @@ int main() {
         cout << "\n10. Exit";
         cout << "\n======================================";
         cout << "\nEnter Your Choice: ";
+
         cin >> choice;
 
         switch (choice) {
+        case 1: {
+            string name;
+            int priority, arrival, burst, deadline;
 
-            case 1: {
-                string name;
-                int priority;
-                int arrival;
-                int burst;
-                int deadline;
+            cout << "\nEnter Task Name: ";
+            cin >> name;
 
-                cout << "\nEnter Task Name: ";
-                cin >> name;
+            cout << "Enter Priority: ";
+            cin >> priority;
 
-                cout << "Enter Priority: ";
-                cin >> priority;
+            cout << "Enter Arrival Time: ";
+            cin >> arrival;
 
-                cout << "Enter Arrival Time: ";
-                cin >> arrival;
+            cout << "Enter Burst Time: ";
+            cin >> burst;
 
-                cout << "Enter Burst Time: ";
-                cin >> burst;
+            cout << "Enter Deadline: ";
+            cin >> deadline;
 
-                cout << "Enter Deadline: ";
-                cin >> deadline;
+            Task task(name, priority, arrival,
+                      burst, deadline);
 
-                Task task(name, priority, arrival, burst, deadline);
+            tasks.push_back(task);
+            heap.insertTask(task);
 
-                tasks.push_back(task);
-                heap.insertTask(task);
+            cout << "\nTask Inserted Successfully!\n";
+            break;
+        }
 
-                cout << "\nTask Inserted Successfully!\n";
-                break;
-            }
+        case 2:
+            displayAllTasks(tasks);
+            break;
 
-            case 2:
-                displayAllTasks(tasks);
-                break;
+        case 3:
+            heap.displayHeap();
+            break;
 
-            case 3:
-                heap.displayHeap();
-                break;
+        case 4: {
+            string name;
+            int newPriority;
 
-            case 4: {
-                string name;
-                int newPriority;
+            cout << "\nEnter Task Name: ";
+            cin >> name;
 
-                cout << "\nEnter Task Name: ";
-                cin >> name;
+            cout << "Enter New Priority: ";
+            cin >> newPriority;
 
-                cout << "Enter New Priority: ";
-                cin >> newPriority;
-
-                heap.decreaseKey(name, newPriority);
-
-                for (int i = 0; i < tasks.size(); i++) {
-                    if (tasks[i].taskName == name) {
-                        tasks[i].priority = newPriority;
+            if (heap.decreaseKey(name, newPriority)) {
+                for (Task &task : tasks) {
+                    if (task.taskName == name) {
+                        task.priority = newPriority;
                         break;
                     }
                 }
-
-                break;
             }
 
-            case 5:
-                if (tasks.empty()) {
-                    cout << "\nNo Tasks Available!\n";
-                }
-                else {
-                    calculateReport(priorityScheduling(tasks),
-                                    "PRIORITY SCHEDULING");
-                }
-                break;
+            break;
+        }
 
-            case 6:
-                if (tasks.empty()) {
-                    cout << "\nNo Tasks Available!\n";
-                }
-                else {
-                    calculateReport(fcfsScheduling(tasks),
-                                    "FCFS SCHEDULING");
-                }
-                break;
+        case 5:
+            calculateReport(
+                priorityScheduling(tasks),
+                "PRIORITY SCHEDULING");
+            break;
 
-            case 7:
-                if (tasks.empty()) {
-                    cout << "\nNo Tasks Available!\n";
-                }
-                else {
-                    calculateReport(sjfScheduling(tasks),
-                                    "SJF SCHEDULING");
-                }
-                break;
+        case 6:
+            calculateReport(
+                fcfsScheduling(tasks),
+                "FCFS SCHEDULING");
+            break;
 
-            case 8:
-                if (tasks.empty()) {
-                    cout << "\nNo Tasks Available!\n";
-                }
-                else {
-                    calculateReport(priorityScheduling(tasks),
-                                    "PRIORITY SCHEDULING");
+        case 7:
+            calculateReport(
+                sjfScheduling(tasks),
+                "SJF SCHEDULING");
+            break;
 
-                    calculateReport(fcfsScheduling(tasks),
-                                    "FCFS SCHEDULING");
+        case 8:
+            calculateReport(
+                priorityScheduling(tasks),
+                "PRIORITY SCHEDULING");
 
-                    calculateReport(sjfScheduling(tasks),
-                                    "SJF SCHEDULING");
-                }
-                break;
+            calculateReport(
+                fcfsScheduling(tasks),
+                "FCFS SCHEDULING");
 
-            case 9:
-                if (tasks.empty()) {
-                    cout << "\nNo Tasks Available!\n";
-                }
-                else {
-                    policyAdvisor(tasks);
-                }
-                break;
+            calculateReport(
+                sjfScheduling(tasks),
+                "SJF SCHEDULING");
+            break;
 
-            case 10:
-                cout << "\nThank You! Program Exited.\n";
-                break;
+        case 9:
+            if (tasks.empty())
+                cout << "\nNo Tasks Available!\n";
+            else
+                policyAdvisor(tasks);
+            break;
 
-            default:
-                cout << "\nInvalid Choice!\n";
+        case 10:
+            cout << "\nThank You! Program Exited.\n";
+            break;
+
+        default:
+            cout << "\nInvalid Choice!\n";
         }
 
     } while (choice != 10);
